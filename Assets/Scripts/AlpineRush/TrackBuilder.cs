@@ -244,7 +244,7 @@ namespace AlpineRush
             meshGo.AddComponent<MeshRenderer>().sharedMaterial = metal;
         }
 
-        static void BuildTerrain(Transform parent, TrackData track, Texture grass, Texture dirt, Texture rock, Texture snow)
+        static void BuildTerrain(Transform parent, TrackData track, Texture2D grass, Texture2D dirt, Texture2D rock, Texture2D snow)
         {
             float minX = float.MaxValue, maxX = float.MinValue, minZ = float.MaxValue, maxZ = float.MinValue;
             for (int i = 0; i < track.Samples.Length; i++)
@@ -426,7 +426,7 @@ namespace AlpineRush
             return h;
         }
 
-        static TerrainLayer Layer(Texture tex, Vector2 tile)
+        static TerrainLayer Layer(Texture2D tex, Vector2 tile)
         {
             return new TerrainLayer
             {

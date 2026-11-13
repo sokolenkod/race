@@ -51,6 +51,7 @@ namespace AlpineRush
             steer = Mathf.Clamp(steer + wobble, -1f, 1f);
 
             float curvature = Mathf.Abs(further.Curvature);
+            bool straight = curvature < 0.012f && Mathf.Abs(latError) < 2.5f;
             float radius = curvature > 0.0008f ? 1f / curvature : 180f;
             float comfort = Mathf.Lerp(11f, 17f, Aggression);
             float cornerSpeed = Mathf.Sqrt(Mathf.Max(radius, 8f) * comfort);
@@ -76,7 +77,6 @@ namespace AlpineRush
 
             vehicle.Steer = steer;
             vehicle.Drift = curvature > 0.03f && speed > 14f && Mathf.Abs(steer) > 0.35f && Aggression > 0.4f;
-            bool straight = curvature < 0.012f && Mathf.Abs(latError) < 2.5f;
             vehicle.Nitro = straight && vehicle.NitroAmount > 0.45f && Aggression > 0.55f && speed > 18f;
         }
     }

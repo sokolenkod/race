@@ -19,7 +19,7 @@ namespace AlpineRush
         public const int TotalLapsConstant = 3;
         public const int CheckpointCount = 12;
 
-        public TrackData Track;
+        [System.NonSerialized] public TrackData Track;
         public StartLights Lights;
         public RacePhase Phase { get; private set; } = RacePhase.Boot;
         public float RaceTime { get; private set; }
