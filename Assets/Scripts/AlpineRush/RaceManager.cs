@@ -19,7 +19,7 @@ namespace AlpineRush
         public const int TotalLapsConstant = 3;
         public const int CheckpointCount = 12;
 
-        public TrackData Track;
+        [System.NonSerialized] public TrackData Track;
         public StartLights Lights;
         public RacePhase Phase { get; private set; } = RacePhase.Boot;
         public float RaceTime { get; private set; }
@@ -92,6 +92,9 @@ namespace AlpineRush
             DrivingInput.Poll();
             if (DrivingInput.PausePressed && Phase != RacePhase.Finished)
                 SetPaused(!Paused);
+            if (DrivingInput.RespawnPressed && Phase == RacePhase.Racing && !Paused
+                && Player != null && Player.Vehicle != null && !Player.Finished)
+                Player.Vehicle.Respawn();
 
             if (Phase == RacePhase.Racing) RaceTime += Time.deltaTime;
             UpdateWrongWay();
@@ -106,7 +109,10 @@ namespace AlpineRush
             {
                 var racer = Racers[i];
                 if (racer == null) continue;
-                racer.TrackDistance = Track.Project(racer.transform.position, racer.TrackDistance);
+                float projected = Track.Project(racer.transform.position, racer.TrackDistance);
+                var sample = Track.SampleAtDistance(projected);
+                if ((sample.Position - racer.transform.position).sqrMagnitude < 25f * 25f)
+                    racer.TrackDistance = projected;
             }
         }
 
@@ -154,6 +160,8 @@ namespace AlpineRush
             if (Phase == RacePhase.Finished) paused = false;
             Paused = paused;
             Time.timeScale = paused ? 0f : 1f;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
             if (hud != null) hud.SetPaused(paused);
         }
     }

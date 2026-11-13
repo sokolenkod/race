@@ -108,7 +108,7 @@ namespace AlpineRush
             RenderSettings.reflectionIntensity = 0.6f;
 
             QualitySettings.shadowDistance = race ? 240f : 80f;
-            QualitySettings.shadows = ShadowQuality.All;
+            QualitySettings.shadows = UnityEngine.ShadowQuality.All;
             QualitySettings.shadowCascades = 2;
 
             var sunGo = new GameObject("Sun");

@@ -47,6 +47,8 @@ namespace AlpineRush
             if (race.Phase != RacePhase.Racing) return;
             if (index != NextCheckpoint) return;
 
+            if (race.Track != null)
+                TrackDistance = race.Track.CheckpointDistances[index];
             CheckpointIndex = index;
             NextCheckpoint = (index + 1) % RaceManager.CheckpointCount;
             if (index == 0)
