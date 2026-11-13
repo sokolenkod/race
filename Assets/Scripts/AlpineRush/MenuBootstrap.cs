@@ -8,6 +8,9 @@ namespace AlpineRush
     {
         void Start()
         {
+            Time.timeScale = 1f;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
             PropLibrary.EnsureLoaded();
             StyleKit.ApplyAtmosphere(false);
             BuildDiorama();

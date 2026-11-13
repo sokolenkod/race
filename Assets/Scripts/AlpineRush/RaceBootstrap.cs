@@ -22,6 +22,11 @@ namespace AlpineRush
 
         IEnumerator Start()
         {
+            Time.timeScale = 1f;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            Physics.queriesHitBackfaces = true;
+
             var cam = StyleKit.CreateCamera("RaceCamera", true);
             cam.tag = "MainCamera";
             cam.gameObject.AddComponent<AudioListener>();

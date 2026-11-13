@@ -347,6 +347,7 @@ namespace AlpineRush
             data.heightmapResolution = res;
             data.size = new Vector3(sizeX, sizeY, sizeZ);
             data.SetHeights(0, 0, heights);
+            data.SyncHeightmap();
             data.alphamapResolution = 256;
 
             var layers = new TerrainLayer[4];

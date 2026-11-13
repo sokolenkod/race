@@ -212,6 +212,8 @@ namespace AlpineRush
             }
             resultsBody.text = body;
             resultsRoot.SetActive(true);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
 
         public void Tick()

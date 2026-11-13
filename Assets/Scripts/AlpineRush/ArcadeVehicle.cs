@@ -34,6 +34,8 @@ namespace AlpineRush
         float verticalSpeed;
         float airborneTime;
         float stuckTime;
+        float progressStillTime;
+        float progressMark = -1f;
         float respawnLock;
         float impactLock;
         const float RideHeight = 0.12f;
@@ -45,6 +47,9 @@ namespace AlpineRush
             body.useGravity = false;
             body.interpolation = RigidbodyInterpolation.Interpolate;
             racer = GetComponent<Racer>();
+            // Chassis queries must not hit this collider, or the ground probe
+            // locks onto the roof and the car never finds the road.
+            gameObject.layer = AlpineLayers.Vehicle;
 
             var box = gameObject.AddComponent<BoxCollider>();
             box.center = new Vector3(0f, 0.78f, 0f);
@@ -59,6 +64,8 @@ namespace AlpineRush
             verticalSpeed = 0f;
             airborneTime = 0f;
             stuckTime = 0f;
+            progressStillTime = 0f;
+            progressMark = -1f;
             respawnLock = 0.6f;
             var rotation = Quaternion.Euler(0f, yaw, 0f);
             body.position = position;
@@ -86,7 +93,6 @@ namespace AlpineRush
                 Steer = DrivingInput.Steer;
                 Drift = DrivingInput.Drift;
                 Nitro = DrivingInput.Nitro;
-                if (DrivingInput.RespawnPressed) Respawn();
             }
 
             if (!racing)
@@ -208,7 +214,25 @@ namespace AlpineRush
                 bool falling = airborneTime > 2.4f || pos.y < 2f;
                 bool stuck = Mathf.Abs(Throttle) > 0.5f && Mathf.Abs(ForwardSpeed) < 1.4f;
                 stuckTime = stuck ? stuckTime + dt : 0f;
-                if (falling || stuckTime > 2.3f) Respawn();
+
+                if (racer != null && race.Track != null)
+                {
+                    float along = racer.TrackDistance;
+                    if (progressMark < 0f) progressMark = along;
+                    float advanced = Mathf.Repeat(along - progressMark, race.Track.Length);
+                    if (advanced > race.Track.Length * 0.5f) advanced -= race.Track.Length;
+                    if (advanced > 3f)
+                    {
+                        progressMark = along;
+                        progressStillTime = 0f;
+                    }
+                    else if (Mathf.Abs(Throttle) > 0.2f)
+                    {
+                        progressStillTime += dt;
+                    }
+                }
+
+                if (falling || stuckTime > 2.3f || progressStillTime > 4.5f) Respawn();
             }
         }
 
@@ -220,6 +244,7 @@ namespace AlpineRush
             bool found = false;
             for (int i = 0; i < hits.Length; i++)
             {
+                if (hits[i].collider != null && hits[i].collider.transform.root == transform) continue;
                 if (hits[i].normal.y < 0.42f) continue;
                 if (hits[i].distance < best)
                 {
@@ -240,8 +265,15 @@ namespace AlpineRush
                 if (mag < 0.0005f) break;
                 Vector3 dir = move / mag;
                 Vector3 center = pos + rotation * new Vector3(0f, 0.8f, 0f);
-                if (Physics.BoxCast(center, half, dir, out RaycastHit hit, rotation, mag + 0.08f, AlpineLayers.WallMask, QueryTriggerInteraction.Ignore)
-                    && hit.normal.y < 0.5f)
+                bool hitWall = Physics.BoxCast(center, half, dir, out RaycastHit hit, rotation, mag + 0.08f, AlpineLayers.WallMask, QueryTriggerInteraction.Ignore)
+                    && hit.normal.y < 0.5f;
+                if (!hitWall && Physics.BoxCast(center, half, dir, out RaycastHit carHit, rotation, mag + 0.08f, 1 << AlpineLayers.Vehicle, QueryTriggerInteraction.Ignore)
+                    && carHit.collider.transform.root != transform && carHit.normal.y < 0.5f)
+                {
+                    hit = carHit;
+                    hitWall = true;
+                }
+                if (hitWall)
                 {
                     float travel = Mathf.Max(0f, hit.distance - 0.07f);
                     pos += dir * Mathf.Min(travel, mag);

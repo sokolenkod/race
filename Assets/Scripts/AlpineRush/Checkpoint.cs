@@ -9,7 +9,12 @@ namespace AlpineRush
         void OnTriggerEnter(Collider other)
         {
             var racer = other.GetComponentInParent<Racer>();
-            if (racer != null) racer.PassCheckpoint(Index);
+            if (racer == null || racer.Vehicle == null) return;
+            // Gates only count when the car is travelling with the circuit.
+            // Reversing through a gate, or clipping it sideways, does not award a lap.
+            float facing = Vector3.Dot(racer.transform.forward, transform.forward);
+            if (racer.Vehicle.ForwardSpeed > 0.8f && facing > 0.2f)
+                racer.PassCheckpoint(Index);
         }
     }
 

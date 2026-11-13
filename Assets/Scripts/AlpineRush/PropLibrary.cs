@@ -11,6 +11,7 @@ namespace AlpineRush
         static readonly List<GameObject> rocks = new List<GameObject>();
         static readonly List<GameObject> plants = new List<GameObject>();
         static GameObject cone;
+        static Texture2D palette;
         static Mesh fallbackRock;
         static Mesh fallbackCone;
 
@@ -29,6 +30,11 @@ namespace AlpineRush
             for (int i = 0; i < vehicleAssets.Length; i++)
             {
                 if (vehicleAssets[i] == null) continue;
+                if (vehicleAssets[i].name.ToLowerInvariant().Contains("cone"))
+                {
+                    cone = vehicleAssets[i];
+                    continue;
+                }
                 cars[vehicleAssets[i].name] = vehicleAssets[i];
             }
 
@@ -133,6 +139,13 @@ namespace AlpineRush
             foreach (var light in go.GetComponentsInChildren<Light>(true)) Object.Destroy(light);
             foreach (var listener in go.GetComponentsInChildren<AudioListener>(true)) Object.Destroy(listener);
             foreach (var collider in go.GetComponentsInChildren<Collider>(true)) Object.Destroy(collider);
+            foreach (var body in go.GetComponentsInChildren<Rigidbody>(true)) Object.Destroy(body);
+        }
+
+        static Texture2D Palette()
+        {
+            if (palette == null) palette = Resources.Load<Texture2D>("Vehicles/Textures/colormap");
+            return palette;
         }
 
         public static void UpgradeMaterials(GameObject go, bool vehicle)
@@ -150,6 +163,16 @@ namespace AlpineRush
                     if (src != null && src.shader != null && src.shader.name.Contains("Universal"))
                     {
                         copy[i] = src;
+                        if (vehicle && src.HasProperty("_BaseMap") && src.GetTexture("_BaseMap") == null)
+                        {
+                            var pal = Palette();
+                            if (pal != null)
+                            {
+                                var tinted = new Material(src);
+                                tinted.SetTexture("_BaseMap", pal);
+                                copy[i] = tinted;
+                            }
+                        }
                         continue;
                     }
 
@@ -163,6 +186,7 @@ namespace AlpineRush
                         if (src.HasProperty("_MainTex")) tex = src.GetTexture("_MainTex");
                         if (tex == null && src.HasProperty("_BaseMap")) tex = src.GetTexture("_BaseMap");
                     }
+                    if (tex == null && vehicle) tex = Palette();
                     if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
                     mat.color = color;
                     if (tex != null)
